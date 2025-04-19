@@ -8,8 +8,11 @@ type Row = {
 };
 
 export async function loadSalesData() {
-    const res = await fetch(new URL('/sales.csv', 'https://next-sales-dashboard.vercel.app').toString());
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    'https://next-sales-dashboard.vercel.app'; // ✅ replace with your deployed Vercel URL
 
+  const res = await fetch(new URL('/sales.csv', baseUrl).toString());
   const csvText = await res.text();
 
   const parsed = Papa.parse<Row>(csvText, {
@@ -17,23 +20,31 @@ export async function loadSalesData() {
     skipEmptyLines: true,
   });
 
+  console.log('Parsed CSV:', parsed.data); // ✅ Debug line to see the raw data
+
   const categoryTotals: { [key: string]: number } = {};
 
-  parsed.data.forEach((row) => {
-    let category = row.Category?.trim();
+  parsed.data.forEach((row, index) => {
+    const rawCategory = row.Category?.trim();
     const rawStock = row.Stock?.trim();
     const stock = Number(rawStock);
 
-    if (!category || isNaN(stock)) return;
-
-    category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-
-    if (!categoryTotals[category]) {
-      categoryTotals[category] = 0;
+    if (!rawCategory || isNaN(stock)) {
+      console.warn(`Skipping row ${index}:`, row);
+      return;
     }
 
-    categoryTotals[category] += stock;
+    const formattedCategory =
+      rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1).toLowerCase();
+
+    if (!categoryTotals[formattedCategory]) {
+      categoryTotals[formattedCategory] = 0;
+    }
+
+    categoryTotals[formattedCategory] += stock;
   });
+
+  console.log('categoryTotals:', categoryTotals); // ✅ Debug line to see final output
 
   return Object.entries(categoryTotals).map(([Category, Stock]) => ({
     Category,

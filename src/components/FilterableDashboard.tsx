@@ -52,7 +52,12 @@ export default function FilterableDashboard({ data }: Props) {
       {/* Filter by Stock Threshold */}
       <FilterInput onChange={setThreshold} />
 
-      <SalesChart data={filtered} />
+      {filtered.length === 0 ? (
+  <p className="text-white text-center italic">No data matches your filter.</p>
+) : (
+  <SalesChart data={filtered} />
+)}
+
     </main>
   );
 }
