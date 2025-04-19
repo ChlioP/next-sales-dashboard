@@ -8,7 +8,8 @@ type Row = {
 };
 
 export async function loadSalesData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/sales.csv`);
+    const res = await fetch(new URL('/sales.csv', 'https://next-sales-dashboard.vercel.app').toString());
+
   const csvText = await res.text();
 
   const parsed = Papa.parse<Row>(csvText, {
