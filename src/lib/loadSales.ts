@@ -1,19 +1,17 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
 import Papa from 'papaparse';
 
-type RawRow = {
+type Row = {
   Category: string;
   Stock: string;
 };
 
 export async function loadSalesData() {
-  const filePath = path.join(process.cwd(), 'src/data/sales.csv');
-  const file = fs.readFileSync(filePath, 'utf8');
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/sales.csv`);
+  const csvText = await res.text();
 
-  const parsed = Papa.parse<RawRow>(file, {
+  const parsed = Papa.parse<Row>(csvText, {
     header: true,
     skipEmptyLines: true,
   });
@@ -25,10 +23,8 @@ export async function loadSalesData() {
     const rawStock = row.Stock?.trim();
     const stock = Number(rawStock);
 
-    // Skip invalid rows
     if (!category || isNaN(stock)) return;
 
-    // Format category name to sentence case
     category = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
 
     if (!categoryTotals[category]) {
@@ -38,11 +34,8 @@ export async function loadSalesData() {
     categoryTotals[category] += stock;
   });
 
-  // Format the final chart data
-  const chartData = Object.entries(categoryTotals).map(([Category, Stock]) => ({
+  return Object.entries(categoryTotals).map(([Category, Stock]) => ({
     Category,
     Stock,
   }));
-
-  return chartData;
 }
