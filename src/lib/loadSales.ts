@@ -8,7 +8,7 @@ type Row = {
 };
 
 export async function loadSalesData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/Sales.csv`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/sales.csv`);
   const csvText = await res.text();
 
   const parsed = Papa.parse<Row>(csvText, {
